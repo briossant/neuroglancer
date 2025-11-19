@@ -134,6 +134,7 @@ import {
   verifyString,
 } from "#src/util/json.js";
 import { Signal } from "#src/util/signal.js";
+import { OptimisticSegmentationRenderLayer } from "#src/voxel_annotation/renderlayers.js";
 import { makeWatchableShaderError } from "#src/webgl/dynamic_shader.js";
 import type { DependentViewContext } from "#src/widget/dependent_view_widget.js";
 import { registerLayerShaderControlsTool } from "#src/widget/shader_controls.js";
@@ -616,8 +617,13 @@ export class SegmentationUserLayer extends Base {
   _createVoxelRenderLayer(
     source: MultiscaleVolumeChunkSource,
     transform: WatchableValueInterface<RenderLayerTransformOrError>,
+    isOptimistic = false
   ): SegmentationRenderLayer {
-    return new SegmentationRenderLayer(source, {
+    const RenderLayerClass = isOptimistic
+      ? OptimisticSegmentationRenderLayer
+      : SegmentationRenderLayer;
+    
+    return new RenderLayerClass(source, {
       ...this.displayState,
       transform: transform,
       renderScaleTarget: this.sliceViewRenderScaleTarget,

@@ -58,7 +58,6 @@ import type { WatchableValueInterface } from "#src/trackable_value.js";
 import {
   makeCachedDerivedWatchableValue,
   makeCachedLazyDerivedWatchableValue,
-  makeDerivedWatchableValue,
   registerNested,
   TrackableValue,
   WatchableValue,
@@ -79,6 +78,9 @@ import {
   VOLUME_RENDERING_DEPTH_SAMPLES_DEFAULT_VALUE,
   VolumeRenderingRenderLayer,
 } from "#src/volume_rendering/volume_render_layer.js";
+import {
+  OptimisticImageRenderLayer,
+} from "#src/voxel_annotation/renderlayers.js";
 import type { ParameterizedShaderGetterResult } from "#src/webgl/dynamic_shader.js";
 import { makeWatchableShaderError } from "#src/webgl/dynamic_shader.js";
 import type { ShaderControlsBuilderState } from "#src/webgl/shader_ui_controls.js";
@@ -200,36 +202,16 @@ export class ImageUserLayer extends Base {
   _createVoxelRenderLayer(
     source: MultiscaleVolumeChunkSource,
     transform: WatchableValueInterface<RenderLayerTransformOrError>,
+    isOptimistic = false
   ): ImageRenderLayer {
-    const wrappedFragmentMain = makeDerivedWatchableValue(
-      (originalShader: string) => `
-#define main userMain
-${originalShader}
-#undef main
+    const RenderLayerClass = isOptimistic
+      ? OptimisticImageRenderLayer
+      : ImageRenderLayer;
 
-void main() {
-  if (toRaw(getDataValue()) == 0n) {
-    emitTransparent();
-    return;
-  }
-  userMain();
-}
-`,
-      this.fragmentMain,
-    );
-    this.registerDisposer(wrappedFragmentMain);
-
-    const shaderControlState = new ShaderControlState(
-      wrappedFragmentMain,
-      this.shaderControlState.dataContext,
-      this.channelCoordinateSpaceCombiner,
-    );
-    this.registerDisposer(shaderControlState);
-
-    return new ImageRenderLayer(source, {
+    return new RenderLayerClass(source, {
       opacity: new TrackableValue(1.0, verifyFloat01),
       blendMode: new TrackableEnum(BLEND_MODES, BLEND_MODES.ADDITIVE),
-      shaderControlState: shaderControlState,
+      shaderControlState: this.shaderControlState,
       shaderError: this.shaderError,
       transform: transform,
       renderScaleTarget: this.sliceViewRenderScaleTarget,

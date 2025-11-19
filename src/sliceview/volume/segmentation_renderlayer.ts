@@ -77,7 +77,7 @@ export interface SliceViewSegmentationDisplayState
   ignoreNullVisibleSet: WatchableValueInterface<boolean>;
 }
 
-interface ShaderParameters {
+export interface ShaderParameters {
   hasEquivalences: boolean;
   baseSegmentColoring: boolean;
   baseSegmentHighlighting: boolean;

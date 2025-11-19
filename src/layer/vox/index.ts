@@ -113,6 +113,7 @@ export class VoxelEditingContext
     this.optimisticRenderLayer = this.hostLayer._createVoxelRenderLayer(
       this.previewSource,
       transform,
+      true
     );
 
     // since we only allow drawing at max res, we can lock the optimistic render layer to it
@@ -236,6 +237,7 @@ export declare abstract class UserLayerWithVoxelEditing extends UserLayer {
   abstract _createVoxelRenderLayer(
     source: MultiscaleVolumeChunkSource,
     transform: WatchableValueInterface<RenderLayerTransformOrError>,
+    isOptimistic: boolean
   ): ImageRenderLayer | SegmentationRenderLayer;
   abstract getVoxelPaintValue(erase: boolean): bigint;
   abstract setVoxelPaintValue(value: any): bigint;
@@ -363,6 +365,7 @@ export function UserLayerWithVoxelEditingMixin<
     abstract _createVoxelRenderLayer(
       source: MultiscaleVolumeChunkSource,
       transform: WatchableValueInterface<RenderLayerTransformOrError>,
+      isOptimistic: boolean
     ): ImageRenderLayer | SegmentationRenderLayer;
 
     initializeVoxelEditingForSubsource(
